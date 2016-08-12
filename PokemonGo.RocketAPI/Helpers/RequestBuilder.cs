@@ -1,6 +1,5 @@
 ﻿using Google.Protobuf;
 using PokemonGo.RocketAPI.Enums;
-using POGOProtos.Networking;
 using POGOProtos.Networking.Envelopes;
 using POGOProtos.Networking.Requests;
 using System;
@@ -8,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using PokemonGo.RocketAPI.Extensions;
 
 namespace PokemonGo.RocketAPI.Helpers

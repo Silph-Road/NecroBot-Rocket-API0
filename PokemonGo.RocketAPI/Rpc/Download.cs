@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using PokemonGo.RocketAPI.Helpers;
 using POGOProtos.Enums;
 using POGOProtos.Networking.Requests;
 using POGOProtos.Networking.Requests.Messages;
