@@ -20,6 +20,8 @@ namespace PokemonGo.RocketAPI.Helpers
         private readonly double _longitude;
         private readonly double _altitude;
         private readonly AuthTicket _authTicket;
+        private readonly DateTime _startTime = DateTime.UtcNow;
+        private ulong _nextRequestId;
         static private readonly Stopwatch _internalWatch = new Stopwatch();
         private readonly ISettings settings;
 
@@ -32,6 +34,7 @@ namespace PokemonGo.RocketAPI.Helpers
             _altitude = altitude;
             this.settings = settings;
             _authTicket = authTicket;
+            _nextRequestId = Convert.ToUInt64(RandomDevice.NextDouble() * Math.Pow(10, 18));
             if (!_internalWatch.IsRunning)
                 _internalWatch.Start();
 
@@ -41,83 +44,79 @@ namespace PokemonGo.RocketAPI.Helpers
 
         private Unknown6 GenerateSignature(IEnumerable<IMessage> requests)
         {
-            var sig = new POGOProtos.Networking.Signature();
-            sig.TimestampSinceStart = (ulong)_internalWatch.ElapsedMilliseconds;
-            sig.Timestamp = (ulong)DateTime.UtcNow.ToUnixTime();
-            sig.SensorInfo = new POGOProtos.Networking.Signature.Types.SensorInfo()
+            var ticketBytes = _authTicket.ToByteArray();
+
+            var sig = new Signature()
             {
-                AccelNormalizedZ = GenRandom(9.8),
-                AccelNormalizedX = GenRandom(0.02),
-                AccelNormalizedY = GenRandom(0.3),
-                TimestampSnapshot = (ulong)_internalWatch.ElapsedMilliseconds - 230,
-                MagnetometerX = GenRandom(0.12271042913198471),
-                MagnetometerY = GenRandom(-0.015570580959320068),
-                MagnetometerZ = GenRandom(0.010850906372070313),
-                AngleNormalizedX = GenRandom(17.950439453125),
-                AngleNormalizedY = GenRandom(-23.36273193359375),
-                AngleNormalizedZ = GenRandom(-48.8250732421875),
-                AccelRawX = GenRandom(-0.0120010357350111),
-                AccelRawY = GenRandom(-0.04214850440621376),
-                AccelRawZ = GenRandom(0.94571763277053833),
-                GyroscopeRawX = GenRandom(7.62939453125e-005),
-                GyroscopeRawY = GenRandom(-0.00054931640625),
-                GyroscopeRawZ = GenRandom(0.0024566650390625),
-                AccelerometerAxes = 3
+                LocationHash1 = Utils.GenerateLocation1(ticketBytes, _latitude, _longitude, _altitude),
+                LocationHash2 = Utils.GenerateLocation2(_latitude, _longitude, _altitude),
+                SensorInfo = new Signature.Types.SensorInfo()
+                {
+                    AccelNormalizedZ = GenRandom(9.8),
+                    AccelNormalizedX = GenRandom(0.02),
+                    AccelNormalizedY = GenRandom(0.3),
+                    TimestampSnapshot = (ulong)_internalWatch.ElapsedMilliseconds - 230,
+                    MagnetometerX = GenRandom(0.12271042913198471),
+                    MagnetometerY = GenRandom(-0.015570580959320068),
+                    MagnetometerZ = GenRandom(0.010850906372070313),
+                    AngleNormalizedX = GenRandom(17.950439453125),
+                    AngleNormalizedY = GenRandom(-23.36273193359375),
+                    AngleNormalizedZ = GenRandom(-48.8250732421875),
+                    AccelRawX = GenRandom(-0.0120010357350111),
+                    AccelRawY = GenRandom(-0.04214850440621376),
+                    AccelRawZ = GenRandom(0.94571763277053833),
+                    GyroscopeRawX = GenRandom(7.62939453125e-005),
+                    GyroscopeRawY = GenRandom(-0.00054931640625),
+                    GyroscopeRawZ = GenRandom(0.0024566650390625),
+                    AccelerometerAxes = 3
+                },
+                DeviceInfo = new Signature.Types.DeviceInfo()
+                {
+                    DeviceId = settings.DeviceId,
+                    AndroidBoardName = settings.AndroidBoardName,
+                    AndroidBootloader = settings.AndroidBootloader,
+                    DeviceBrand = settings.DeviceBrand,
+                    DeviceModel = settings.DeviceModel,
+                    DeviceModelIdentifier = settings.DeviceModelIdentifier,
+                    DeviceModelBoot = settings.DeviceModelBoot,
+                    HardwareManufacturer = settings.HardwareManufacturer,
+                    HardwareModel = settings.HardwareModel,
+                    FirmwareBrand = settings.FirmwareBrand,
+                    FirmwareTags = settings.FirmwareTags,
+                    FirmwareType = settings.FirmwareType,
+                    FirmwareFingerprint = settings.FirmwareFingerprint
+                }
             };
-            sig.DeviceInfo = new POGOProtos.Networking.Signature.Types.DeviceInfo()
-            {
-                DeviceId = settings.DeviceId,
-                AndroidBoardName = settings.AndroidBoardName,
-                AndroidBootloader = settings.AndroidBootloader,
-                DeviceBrand = settings.DeviceBrand,
-                DeviceModel = settings.DeviceModel,
-                DeviceModelIdentifier = settings.DeviceModelIdentifier,
-                DeviceModelBoot = settings.DeviceModelBoot,
-                HardwareManufacturer = settings.HardwareManufacturer,
-                HardwareModel = settings.HardwareModel,
-                FirmwareBrand = settings.FirmwareBrand,
-                FirmwareTags = settings.FirmwareTags,
-                FirmwareType = settings.FirmwareType,
-                FirmwareFingerprint = settings.FirmwareFingerprint
-            };
-            sig.LocationFix.Add(new POGOProtos.Networking.Signature.Types.LocationFix()
+
+            sig.LocationFix.Add(new Signature.Types.LocationFix()
             {
                 Provider = "network",
-
-                //Unk4 = 120,
                 Latitude = (float)_latitude,
                 Longitude = (float)_longitude,
                 Altitude = (float)_altitude,
-                TimestampSinceStart = (ulong)_internalWatch.ElapsedMilliseconds - 200,
+                //HorizontalAccuracy = (float)Math.Round(GenRandom(50, 250), 7),
+                //VerticalAccuracy = RandomDevice.Next(2, 5),
+                TimestampSnapshot = (ulong)_internalWatch.ElapsedMilliseconds - 200,
+                //ProviderStatus = 3,
                 Floor = 3,
                 LocationType = 1
             });
 
-            //Compute 10
-            var x = new System.Data.HashFunction.xxHash(32, 0x1B845238);
-            var firstHash = BitConverter.ToUInt32(x.ComputeHash(_authTicket.ToByteArray()), 0);
-            x = new System.Data.HashFunction.xxHash(32, firstHash);
-            var locationBytes = BitConverter.GetBytes(_latitude).Reverse()
-                .Concat(BitConverter.GetBytes(_longitude).Reverse())
-                .Concat(BitConverter.GetBytes(_altitude).Reverse()).ToArray();
-            sig.LocationHash1 = BitConverter.ToUInt32(x.ComputeHash(locationBytes), 0);
-            //Compute 20
-            x = new System.Data.HashFunction.xxHash(32, 0x1B845238);
-            sig.LocationHash2 = BitConverter.ToUInt32(x.ComputeHash(locationBytes), 0);
-            //Compute 24
-            x = new System.Data.HashFunction.xxHash(64, 0x1B845238);
-            var seed = BitConverter.ToUInt64(x.ComputeHash(_authTicket.ToByteArray()), 0);
-            x = new System.Data.HashFunction.xxHash(64, seed);
-            foreach (var req in requests)
-                sig.RequestHash.Add(BitConverter.ToUInt64(x.ComputeHash(req.ToByteArray()), 0));
+            foreach (var request in requests)
+                sig.RequestHash.Add(Utils.GenerateRequestHash(ticketBytes, request.ToByteArray()));
 
-            //static for now
-            sig.Unk22 = ByteString.CopyFrom(new byte[16] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F });
+            sig.SessionHash = ByteString.CopyFrom(new byte[16] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F });
+            sig.Unknown25 = BitConverter.ToUInt32(new System.Data.HashFunction.xxHash(64, 0x88533787).ComputeHash(System.Text.Encoding.ASCII.GetBytes("\"b8fa9757195897aae92c53dbcf8a60fb3d86d745\"")), 0);
 
-            Unknown6 val = new Unknown6();
-            val.RequestType = 6;
-            val.Unknown2 = new Unknown6.Types.Unknown2();
-            val.Unknown2.Unknown1 = ByteString.CopyFrom(Encrypt(sig.ToByteArray()));
+            Unknown6 val = new Unknown6()
+            {
+                RequestType = 6,
+                Unknown2 = new Unknown6.Types.Unknown2()
+                {
+                    EncryptedSignature = ByteString.CopyFrom(Encrypt(sig.ToByteArray()))
+                }
+            };
+
             return val;
         }
 
@@ -186,7 +185,7 @@ namespace PokemonGo.RocketAPI.Helpers
             {
                 StatusCode = 2, //1
 
-                RequestId = 1469378659230941192, //3
+                RequestId = _nextRequestId++, //3
                 Requests = { customRequests }, //4
 
                 //Unknown6 = , //6
@@ -196,7 +195,7 @@ namespace PokemonGo.RocketAPI.Helpers
                 AuthTicket = _authTicket, //11
                 Unknown12 = 989 //12
             };
-            e.Unknown6.Add(GenerateSignature(customRequests));
+            e.Unknown6 = GenerateSignature(customRequests);
             return e;
         }
 
@@ -206,17 +205,17 @@ namespace PokemonGo.RocketAPI.Helpers
             {
                 StatusCode = 2, //1
 
-                RequestId = 1469378659230941192, //3
+                RequestId = _nextRequestId++, //3
                 Requests = { customRequests }, //4
 
                 //Unknown6 = , //6
                 Latitude = _latitude, //7
                 Longitude = _longitude, //8
                 Altitude = _altitude, //9
-                AuthInfo = new POGOProtos.Networking.Envelopes.RequestEnvelope.Types.AuthInfo
+                AuthInfo = new RequestEnvelope.Types.AuthInfo
                 {
                     Provider = _authType == AuthType.Google ? "google" : "ptc",
-                    Token = new POGOProtos.Networking.Envelopes.RequestEnvelope.Types.AuthInfo.Types.JWT
+                    Token = new RequestEnvelope.Types.AuthInfo.Types.JWT
                     {
                         Contents = _authToken,
                         Unknown2 = 14
@@ -226,8 +225,6 @@ namespace PokemonGo.RocketAPI.Helpers
             };
             return e;
         }
-
-
 
         public RequestEnvelope GetRequestEnvelope(RequestType type, IMessage message)
         {
@@ -243,11 +240,16 @@ namespace PokemonGo.RocketAPI.Helpers
 
         public static double GenRandom(double num)
         {
-                var randomFactor = 0.3f;
-                var randomMin = (num * (1 - randomFactor));
-                var randomMax = (num * (1 + randomFactor));
-                var randomizedDelay = RandomDevice.NextDouble() * (randomMax - randomMin) + randomMin; ;
-                return randomizedDelay;;
+            var randomFactor = 0.3f;
+            var randomMin = (num * (1 - randomFactor));
+            var randomMax = (num * (1 + randomFactor));
+            var randomizedDelay = RandomDevice.NextDouble() * (randomMax - randomMin) + randomMin; ;
+            return randomizedDelay; ;
+        }
+
+        public static double GenRandom(double min, double max)
+        {
+            return RandomDevice.NextDouble() * (min - min) + min;
         }
     }
 }
