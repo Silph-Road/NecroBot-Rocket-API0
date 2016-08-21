@@ -6,7 +6,7 @@ Interface to Pokémon Go Client including pretty much every call
 **Read previous issues before opening a new one! Maybe your issue is already answered. Questions will be removed.
 
 
-<h2><a name="donating">Donating</a></h2><br/>
+<h2><a name="donating">Donating</a></h2>
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J2XY5Y5FKGTSE)<br/>
 
 ----------
