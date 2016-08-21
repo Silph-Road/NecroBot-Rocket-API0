@@ -1,14 +1,14 @@
 # Pokémon Go Client API
+## This repository is a fork updated of [FeroxRev](https://github.com/NecronomiconCoding/NecroBot-Rocket-API)
 
 Interface to Pokémon Go Client including pretty much every call
 
 **Read previous issues before opening a new one! Maybe your issue is already answered. Questions will be removed.
 
-### Feel free to donate some bitcoin-pennys via: 1PvcxDiVoBVtYcMp3HC2Ssv4KXdtbfRpfb
 
-### IMPORTANT
-I've added both, the 32bit and 64bit dll. Renamed the one you want to use to "encrypt.dll"!
-
+<h2><a name="donating">Donating</a></h2>
+<a name="paypal">Feel free to buy us all a beer, by using PayPal:</a><br/>
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=J2XY5Y5FKGTSE)<br/>
 
 ----------
 ### Usage Example
