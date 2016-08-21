@@ -105,7 +105,10 @@ namespace PokemonGo.RocketAPI.Helpers
             foreach (var request in requests)
                 sig.RequestHash.Add(Utils.GenerateRequestHash(ticketBytes, request.ToByteArray()));
 
-            sig.SessionHash = ByteString.CopyFrom(new byte[16] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F });
+            byte[] _sessionHash = new byte[16];
+            RandomDevice.NextBytes(_sessionHash);
+
+            sig.SessionHash = ByteString.CopyFrom(_sessionHash);
             sig.Unknown25 = BitConverter.ToUInt32(new System.Data.HashFunction.xxHash(64, 0x88533787).ComputeHash(System.Text.Encoding.ASCII.GetBytes("\"b8fa9757195897aae92c53dbcf8a60fb3d86d745\"")), 0);
 
             Unknown6 val = new Unknown6()
