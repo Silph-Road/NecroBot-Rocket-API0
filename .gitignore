@@ -254,3 +254,4 @@ paket-files/
 /PokemonGo.RocketAPI/Obfuscator_Inputs
 /PokemonGo.RocketAPI/Proto/google/protobuf
 /PokemonGo.RocketAPI/PokemonGo.RocketAPI.sln
+*.sln
