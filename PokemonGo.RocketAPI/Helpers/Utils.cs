@@ -13,6 +13,16 @@ namespace PokemonGo.RocketAPI.Helpers
             return BitConverter.ToUInt64(bytes, 0);
         }
 
+        public static int GetTime(bool ms = false)
+        {
+            TimeSpan timeSpan = (DateTime.UtcNow - new DateTime(1970, 1, 1));
+
+            if (ms)
+                return (int)Math.Round(timeSpan.TotalMilliseconds);
+            else
+                return (int)Math.Round(timeSpan.TotalSeconds);
+        }
+
         public static uint GenerateLocation1(byte[] authTicket, double lat, double lng, double alt)
         {
             var seed = BitConverter.ToUInt32(new xxHash(32, 0x1B845238).ComputeHash(authTicket), 0);

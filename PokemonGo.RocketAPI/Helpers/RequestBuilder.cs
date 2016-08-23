@@ -3,12 +3,7 @@ using PokemonGo.RocketAPI.Enums;
 using POGOProtos.Networking.Envelopes;
 using POGOProtos.Networking.Requests;
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Linq;
-using PokemonGo.RocketAPI.Extensions;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace PokemonGo.RocketAPI.Helpers
 {
@@ -21,9 +16,8 @@ namespace PokemonGo.RocketAPI.Helpers
         private readonly double _longitude;
         private readonly double _altitude;
         private readonly AuthTicket _authTicket;
-        private readonly DateTime _startTime = DateTime.UtcNow;
+        private int _startTime;
         private ulong _nextRequestId;
-        static private readonly Stopwatch _internalWatch = new Stopwatch();
         private readonly ISettings settings;
 
         public RequestBuilder(string authToken, AuthType authType, double latitude, double longitude, double altitude, ISettings settings, AuthTicket authTicket = null)
@@ -36,8 +30,8 @@ namespace PokemonGo.RocketAPI.Helpers
             this.settings = settings;
             _authTicket = authTicket;
             _nextRequestId = Convert.ToUInt64(RandomDevice.NextDouble() * Math.Pow(10, 18));
-            if (!_internalWatch.IsRunning)
-                _internalWatch.Start();
+            if (_startTime == 0)
+                _startTime = Utils.GetTime(true);
 
             if (crypt == null)
                 crypt = new Crypt();
@@ -53,22 +47,22 @@ namespace PokemonGo.RocketAPI.Helpers
                 LocationHash2 = Utils.GenerateLocation2(_latitude, _longitude, _altitude),
                 SensorInfo = new Signature.Types.SensorInfo()
                 {
-                    AccelNormalizedZ = GenRandom(9.8),
-                    AccelNormalizedX = GenRandom(0.02),
-                    AccelNormalizedY = GenRandom(0.3),
-                    TimestampSnapshot = (ulong)_internalWatch.ElapsedMilliseconds - 230,
-                    MagnetometerX = GenRandom(0.12271042913198471),
-                    MagnetometerY = GenRandom(-0.015570580959320068),
-                    MagnetometerZ = GenRandom(0.010850906372070313),
-                    AngleNormalizedX = GenRandom(17.950439453125),
-                    AngleNormalizedY = GenRandom(-23.36273193359375),
-                    AngleNormalizedZ = GenRandom(-48.8250732421875),
-                    AccelRawX = GenRandom(-0.0120010357350111),
-                    AccelRawY = GenRandom(-0.04214850440621376),
-                    AccelRawZ = GenRandom(0.94571763277053833),
-                    GyroscopeRawX = GenRandom(7.62939453125e-005),
-                    GyroscopeRawY = GenRandom(-0.00054931640625),
-                    GyroscopeRawZ = GenRandom(0.0024566650390625),
+                    AccelNormalizedX = GenRandom(-0.31110161542892456, 0.1681540310382843),
+                    AccelNormalizedY = GenRandom(-0.6574847102165222, -0.07290205359458923),
+                    AccelNormalizedZ = GenRandom(-0.9943905472755432, -0.7463029026985168),
+                    TimestampSnapshot = (ulong)(Utils.GetTime(true) - _startTime - RandomDevice.Next(100, 400)),
+                    MagnetometerX = GenRandom(-0.139084026217, 0.138112977147),
+                    MagnetometerY = GenRandom(-0.2, 0.19),
+                    MagnetometerZ = GenRandom(-0.2, 0.4),
+                    AngleNormalizedX = GenRandom(-47.149471283, 61.8397789001),
+                    AngleNormalizedY = GenRandom(-47.149471283, 61.8397789001),
+                    AngleNormalizedZ = GenRandom(-47.149471283, 5),
+                    AccelRawX = GenRandom(0.0729667818829, 0.0729667818829),
+                    AccelRawY = GenRandom(-2.788630499244109, 3.0586791383810468),
+                    AccelRawZ = GenRandom(-0.34825887123552773, 0.19347580173737935),
+                    GyroscopeRawX = GenRandom(-0.9703824520111084, 0.8556089401245117),
+                    GyroscopeRawY = GenRandom(-1.7470258474349976, 1.4218578338623047),
+                    GyroscopeRawZ = GenRandom(-0.9681901931762695, 0.8396636843681335),
                     AccelerometerAxes = 3
                 },
                 DeviceInfo = new Signature.Types.DeviceInfo()
@@ -91,15 +85,14 @@ namespace PokemonGo.RocketAPI.Helpers
 
             sig.LocationFix.Add(new Signature.Types.LocationFix()
             {
-                Provider = "network",
+                Provider = "fused",
                 Latitude = (float)_latitude,
                 Longitude = (float)_longitude,
                 Altitude = (float)_altitude,
-                //HorizontalAccuracy = (float)Math.Round(GenRandom(50, 250), 7),
-                //VerticalAccuracy = RandomDevice.Next(2, 5),
-                TimestampSnapshot = (ulong)_internalWatch.ElapsedMilliseconds - 200,
-                //ProviderStatus = 3,
-                Floor = 3,
+                HorizontalAccuracy = (float)Math.Round(GenRandom(50, 250), 7),
+                VerticalAccuracy = RandomDevice.Next(2, 5),
+                TimestampSnapshot = (ulong)(Utils.GetTime(true) - _startTime - RandomDevice.Next(100, 300)),
+                ProviderStatus = 3,
                 LocationType = 1
             });
 
@@ -110,7 +103,7 @@ namespace PokemonGo.RocketAPI.Helpers
             RandomDevice.NextBytes(_sessionHash);
 
             sig.SessionHash = ByteString.CopyFrom(_sessionHash);
-            sig.Unknown25 = BitConverter.ToUInt32(new System.Data.HashFunction.xxHash(64, 0x88533787).ComputeHash(System.Text.Encoding.ASCII.GetBytes("\"b8fa9757195897aae92c53dbcf8a60fb3d86d745\"")), 0);
+            sig.Unknown25 = -8537042734809897855;
 
             Unknown6 val = new Unknown6()
             {
