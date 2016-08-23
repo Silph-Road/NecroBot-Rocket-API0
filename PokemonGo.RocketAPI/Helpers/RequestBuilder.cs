@@ -14,6 +14,7 @@ namespace PokemonGo.RocketAPI.Helpers
 {
     public class RequestBuilder
     {
+        private Crypt crypt;
         private readonly string _authToken;
         private readonly AuthType _authType;
         private readonly double _latitude;
@@ -38,8 +39,8 @@ namespace PokemonGo.RocketAPI.Helpers
             if (!_internalWatch.IsRunning)
                 _internalWatch.Start();
 
-            if (encryptNative == null)
-                encryptNative = (EncryptDelegate)FunctionLoader.LoadFunction<EncryptDelegate>(@"Resources\encrypt.dll", "encrypt");
+            if (crypt == null)
+                crypt = new Crypt();
         }
 
         private Unknown6 GenerateSignature(IEnumerable<IMessage> requests)
@@ -116,72 +117,13 @@ namespace PokemonGo.RocketAPI.Helpers
                 RequestType = 6,
                 Unknown2 = new Unknown6.Types.Unknown2()
                 {
-                    EncryptedSignature = ByteString.CopyFrom(Encrypt(sig.ToByteArray()))
+                    EncryptedSignature = ByteString.CopyFrom(crypt.Encrypt(sig.ToByteArray()))
                 }
             };
 
             return val;
         }
-
-        private static byte[] GetURandom(int size)
-        {
-            var rng = new RNGCryptoServiceProvider();
-            var buffer = new byte[size];
-            rng.GetBytes(buffer);
-            return buffer;
-        }
-
-        private byte[] Encrypt(byte[] bytes)
-        {
-            var outputLength = 32 + bytes.Length + (256 - (bytes.Length % 256));
-            var ptr = Marshal.AllocHGlobal(outputLength);
-            var ptrOutput = Marshal.AllocHGlobal(outputLength);
-            FillMemory(ptr, (uint)outputLength, 0);
-            FillMemory(ptrOutput, (uint)outputLength, 0);
-            Marshal.Copy(bytes, 0, ptr, bytes.Length);
-
-            var iv = GetURandom(32);
-            var iv_ptr = Marshal.AllocHGlobal(iv.Length);
-            Marshal.Copy(iv, 0, iv_ptr, iv.Length);
-
-            try
-            {
-                var outputSize = outputLength;
-                encryptNative(ptr, bytes.Length, iv_ptr, iv.Length, ptrOutput, out outputSize);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            var output = new byte[outputLength];
-            Marshal.Copy(ptrOutput, output, 0, outputLength);
-            return output;
-        }
-
-        static class FunctionLoader
-        {
-            [DllImport("Kernel32.dll")]
-            private static extern IntPtr LoadLibrary(string path);
-
-            [DllImport("Kernel32.dll")]
-            private static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-
-            public static Delegate LoadFunction<T>(string dllPath, string functionName)
-            {
-                var hModule = LoadLibrary(dllPath);
-                var functionAddress = GetProcAddress(hModule, functionName);
-                return Marshal.GetDelegateForFunctionPointer(functionAddress, typeof(T));
-            }
-        }
-
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private unsafe delegate int EncryptDelegate(IntPtr arr, int length, IntPtr iv, int ivsize, IntPtr output, out int outputSize);
-
-        private static EncryptDelegate encryptNative;
-
-        [DllImport("kernel32.dll", EntryPoint = "RtlFillMemory", SetLastError = false)]
-        static extern void FillMemory(IntPtr destination, uint length, byte fill);
-
+        
         public RequestEnvelope GetRequestEnvelope(params Request[] customRequests)
         {
             var e = new RequestEnvelope

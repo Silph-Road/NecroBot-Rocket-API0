@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -116,7 +117,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="POGOProtos, Version=1.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)\packages\POGOProtos.1.7.0\lib\net45\POGOProtos.dll</HintPath>
+      <HintPath>..\packages\POGOProtos.1.7.0\lib\net45\POGOProtos.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="S2Geometry, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -175,6 +176,7 @@
     <Compile Include="Exceptions\GoogleException.cs" />
     <Compile Include="Exceptions\GoogleOfflineException.cs" />
     <Compile Include="Exceptions\LoginFailedException.cs" />
+    <Compile Include="Helpers\Crypt.cs" />
     <Compile Include="HttpClient\PokemonClient.cs" />
     <Compile Include="Enums\AuthType.cs" />
     <Compile Include="Exceptions\AccessTokenExpiredException.cs" />
