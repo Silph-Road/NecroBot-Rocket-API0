@@ -156,10 +156,10 @@ namespace PokemonGo.RocketAPI.Helpers
                     Token = new RequestEnvelope.Types.AuthInfo.Types.JWT
                     {
                         Contents = _authToken,
-                        Unknown2 = 14
+                        Unknown2 = 59
                     }
                 }, //10
-                Unknown12 = 989 //12
+                Unknown12 = 3352 //12
             };
             return e;
         }
