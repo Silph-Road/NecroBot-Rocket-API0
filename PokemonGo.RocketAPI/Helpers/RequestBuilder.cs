@@ -43,6 +43,8 @@ namespace PokemonGo.RocketAPI.Helpers
 
             var sig = new Signature()
             {
+				Timestamp = (ulong)Utils.GetTime(true),
+                TimestampSinceStart = (ulong)(Utils.GetTime(true) - _startTime),
                 LocationHash1 = Utils.GenerateLocation1(ticketBytes, _latitude, _longitude, _altitude),
                 LocationHash2 = Utils.GenerateLocation2(_latitude, _longitude, _altitude),
                 SensorInfo = new Signature.Types.SensorInfo()
