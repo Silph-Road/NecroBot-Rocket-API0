@@ -189,7 +189,7 @@ namespace PokemonGo.RocketAPI.Helpers
 
         public static double GenRandom(double min, double max)
         {
-            return RandomDevice.NextDouble() * (min - min) + min;
+            return RandomDevice.NextDouble() * (max - min) + min;
         }
     }
 }
