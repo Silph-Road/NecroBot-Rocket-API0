@@ -105,7 +105,8 @@ namespace PokemonGo.RocketAPI.Helpers
             RandomDevice.NextBytes(_sessionHash);
 
             sig.SessionHash = ByteString.CopyFrom(_sessionHash);
-            sig.Unknown25 = -8537042734809897855;
+            //sig.Unknown25 = -8537042734809897855; // For 0.33
+            sig.Unknown25 = 7363665268261373700; // For 0.35
 
             Unknown6 val = new Unknown6()
             {
@@ -133,7 +134,7 @@ namespace PokemonGo.RocketAPI.Helpers
                 Longitude = _longitude, //8
                 Altitude = _altitude, //9
                 AuthTicket = _authTicket, //11
-                MsSinceLastLocationfix = 989 //12
+                MsSinceLastLocationfix = RandomDevice.Next(800, 1900) //12
             };
             e.Unknown6.Add(GenerateSignature(customRequests));
             return e;
@@ -161,7 +162,7 @@ namespace PokemonGo.RocketAPI.Helpers
                         Unknown2 = 59
                     }
                 }, //10
-                MsSinceLastLocationfix = 3352 //12
+                MsSinceLastLocationfix = RandomDevice.Next(800, 1900) //12
             };
             return e;
         }
