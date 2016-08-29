@@ -20,6 +20,21 @@ namespace PokemonGo.RocketAPI.Helpers
         private ulong _nextRequestId;
         private readonly ISettings settings;
 
+        private ByteString SessionHash
+        {
+            get { return settings.SessionHash; }
+            set { settings.SessionHash = value; }
+        }
+
+        public void GenerateNewHash()
+        {
+            var hashBytes = new byte[16];
+
+            RandomDevice.NextBytes(hashBytes);
+
+            SessionHash = ByteString.CopyFrom(hashBytes);
+        }
+
         public RequestBuilder(string authToken, AuthType authType, double latitude, double longitude, double altitude, ISettings settings, AuthTicket authTicket = null)
         {
             _authToken = authToken;
@@ -32,6 +47,11 @@ namespace PokemonGo.RocketAPI.Helpers
             _nextRequestId = Convert.ToUInt64(RandomDevice.NextDouble() * Math.Pow(10, 18));
             if (_startTime == 0)
                 _startTime = Utils.GetTime(true);
+
+            if (SessionHash == null)
+            {
+                GenerateNewHash();
+            }
 
             if (crypt == null)
                 crypt = new Crypt();
@@ -101,10 +121,7 @@ namespace PokemonGo.RocketAPI.Helpers
             foreach (var request in requests)
                 sig.RequestHash.Add(Utils.GenerateRequestHash(ticketBytes, request.ToByteArray()));
 
-            byte[] _sessionHash = new byte[16];
-            RandomDevice.NextBytes(_sessionHash);
-
-            sig.SessionHash = ByteString.CopyFrom(_sessionHash);
+            sig.SessionHash = SessionHash;
             //sig.Unknown25 = -8537042734809897855; // For 0.33
             sig.Unknown25 = 7363665268261373700; // For 0.35
 
