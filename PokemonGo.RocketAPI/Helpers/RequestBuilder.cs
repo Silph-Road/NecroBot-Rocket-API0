@@ -121,7 +121,7 @@ namespace PokemonGo.RocketAPI.Helpers
 
             foreach (var request in requests)
                 sig.RequestHash.Add(Utils.GenerateRequestHash(ticketBytes, request.ToByteArray()));
-
+            
             sig.SessionHash = SessionHash;
             //sig.Unknown25 = -8537042734809897855; // For 0.33
             sig.Unknown25 = 7363665268261373700; // For 0.35
@@ -146,7 +146,7 @@ namespace PokemonGo.RocketAPI.Helpers
                 //Unknown6 = , //6
                 Latitude = _latitude, //7
                 Longitude = _longitude, //8
-                Accuracy = _altitude, //9 //Temp
+                Accuracy = RandomDevice.Next(5, 65), //9 
                 AuthTicket = _authTicket, //11
                 MsSinceLastLocationfix = RandomDevice.Next(800, 1900) //12
             };
@@ -166,7 +166,7 @@ namespace PokemonGo.RocketAPI.Helpers
                 //Unknown6 = , //6
                 Latitude = _latitude, //7
                 Longitude = _longitude, //8
-                Accuracy = _altitude, //9 //Temp
+                Accuracy = RandomDevice.Next(5, 65), //9 
                 AuthInfo = new AuthInfo
                 {
                     Provider = _authType == AuthType.Google ? "google" : "ptc",
