@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.HashFunction;
 using System.Linq;
@@ -23,7 +23,7 @@ namespace PokemonGo.RocketAPI.Helpers
                 return (int)Math.Round(timeSpan.TotalSeconds);
         }
 
-        public static uint GenerateLocation1(byte[] authTicket, double lat, double lng, double alt)
+        public static uint GenerateLocationHashBySeed(byte[] authTicket, double lat, double lng, double alt)
         {
             var seed = BitConverter.ToUInt32(new xxHash(32, 0x1B845238).ComputeHash(authTicket), 0);
             var xxh32 = new xxHash(32, seed);
@@ -36,7 +36,7 @@ namespace PokemonGo.RocketAPI.Helpers
             return BitConverter.ToUInt32(xxh32.ComputeHash(locationBytes.ToArray()), 0);
         }
 
-        public static uint GenerateLocation2(double lat, double lng, double alt)
+        public static uint GenerateLocationHash(double lat, double lng, double alt)
         {
             var xxh32 = new xxHash(32, 0x1B845238);
 
