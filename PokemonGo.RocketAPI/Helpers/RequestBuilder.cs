@@ -52,9 +52,7 @@ namespace PokemonGo.RocketAPI.Helpers
                 _startTime = Utils.GetTime(true);
 
             if (SessionHash == null)
-            {
                 GenerateNewHash();
-            }
 
             if (crypt == null)
                 crypt = new Crypt();
@@ -67,8 +65,8 @@ namespace PokemonGo.RocketAPI.Helpers
             {
                 Timestamp = (ulong)Utils.GetTime(true),
                 TimestampSinceStart = (ulong)(Utils.GetTime(true) - _startTime),
-                LocationHash1 = Utils.GenerateLocation1(ticketBytes, _latitude, _longitude, _altitude),
-                LocationHash2 = Utils.GenerateLocation2(_latitude, _longitude, _altitude),
+                LocationHash1 = Utils.GenerateLocationHashBySeed(ticketBytes, _latitude, _longitude, _altitude),
+                LocationHash2 = Utils.GenerateLocationHash(_latitude, _longitude, _altitude),
                 SensorInfo = new SensorInfo()
                 {
 
@@ -133,7 +131,6 @@ namespace PokemonGo.RocketAPI.Helpers
                 Type = PlatformRequestType.SendEncryptedSignature,
                 RequestMessage = ByteString.CopyFrom(crypt.Encrypt(sig.ToByteArray()))
             };
-
             return SendEncryptedSignatureRequest;
         }
 
